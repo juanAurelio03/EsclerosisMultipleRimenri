@@ -1,0 +1,123 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "f2943220-6b61-42c3-8d30-2542e896dfd7",
+      "name": "9:00 AM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [-992, 640]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "citas",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "estado",
+              "condition": "eq",
+              "keyValue": "pendiente"
+            }
+          ]
+        },
+        "options": {
+          "queryName": "pacientes(*)"
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [-752, 640],
+      "id": "81034843-e343-4e9f-9baa-a52ee28d9ee2",
+      "name": "Obtener Citas Pendientes",
+      "credentials": {
+        "supabaseApi": {
+          "id": "IyNceavIIqVNGH29",
+          "name": "Juanchi - RR"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "={{ $json }}",
+        "options": {}
+      },
+      "id": "c8f3796f-80d2-4411-b314-387f30448da3",
+      "name": "Separar Citas",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [-464, 640]
+    },
+    {
+      "parameters": {
+        "sendTo": "rvillacortac@unitru.edu.pe",
+        "subject": "=🔔 Recordatorio: Cita Pendiente - {{ $json.pacientes ? $json.pacientes.nombre_completo : 'Paciente' }}",
+        "emailType": "text",
+        "message": "=Estimado Dr./Dra.,\n\nTiene una cita pendiente:\n\n📅 Fecha: {{ $json.fecha_cita }}\n👤 Paciente: {{ $json.pacientes ? $json.pacientes.nombre_completo : 'N/A' }}\n🏥 Visita #: {{ $json.numero_visita }}\n📝 Estado: {{ $json.estado }}\n\nPor favor, revise la cita en el sistema.\n\nSaludos,\nSistema de Gestión de Esclerosis Múltiple",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [-224, 640],
+      "id": "40449d84-77ec-4570-acd8-2b0b76d764fb",
+      "name": "Enviar Email",
+      "webhookId": "fa38a5b3-e993-4a5e-9d88-20e39b1c523f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "cjroD63USU4noP3E",
+          "name": "Gmail - ronaldfinanzas07@gmail.com"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "9:00 AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "Obtener Citas Pendientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Citas Pendientes": {
+      "main": [
+        [
+          {
+            "node": "Separar Citas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar Citas": {
+      "main": [
+        [
+          {
+            "node": "Enviar Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7b6d0dfdde940c123a0c07fe687cd9586dbf1262405e6f6e958b9c056f3d4ff2"
+  }
+}

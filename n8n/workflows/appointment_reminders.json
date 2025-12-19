@@ -1,0 +1,123 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "f2943220-6b61-42c3-8d30-2542e896dfd7",
+      "name": "9:00 AM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -864,
+        640
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/rpc/obtener_citas_pendientes",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "id": "4683d078-d048-4461-a355-6e7e99c1eae9",
+      "name": "Buscar Citas (RPC)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -640,
+        640
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "c8f3796f-80d2-4411-b314-387f30448da3",
+      "name": "Separar Items",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        640
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -224,
+        640
+      ],
+      "id": "40449d84-77ec-4570-acd8-2b0b76d764fb",
+      "name": "Send a message",
+      "webhookId": "fa38a5b3-e993-4a5e-9d88-20e39b1c523f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "cjroD63USU4noP3E",
+          "name": "Gmail - ronaldfinanzas07@gmail.com"
+        }
+      },
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "9:00 AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "Buscar Citas (RPC)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Citas (RPC)": {
+      "main": [
+        [
+          {
+            "node": "Separar Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar Items": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7b6d0dfdde940c123a0c07fe687cd9586dbf1262405e6f6e958b9c056f3d4ff2"
+  }
+}

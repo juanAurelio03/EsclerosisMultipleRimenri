@@ -1,0 +1,92 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "critical-alert",
+        "options": {}
+      },
+      "id": "8dfa3c24-62c0-4553-9769-b219d45f90cb",
+      "name": "Webhook Alerta",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        976
+      ],
+      "webhookId": "c5c10b6f-8159-4cbb-8654-ec7e55ce36ab",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.body.indicador.estado}}",
+              "value2": "critico"
+            }
+          ]
+        }
+      },
+      "id": "ce9f8264-84c8-4075-a2b3-4e3d2bc3ed6d",
+      "name": "Es Crítico?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        992
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -224,
+        976
+      ],
+      "id": "088e0e95-2a5a-467f-8da6-aed943612533",
+      "name": "Send a message1",
+      "webhookId": "8c0d068c-2ebc-469a-a101-e765d5463b4b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "cjroD63USU4noP3E",
+          "name": "Gmail - ronaldfinanzas07@gmail.com"
+        }
+      },
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "Webhook Alerta": {
+      "main": [
+        [
+          {
+            "node": "Es Crítico?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Es Crítico?": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7b6d0dfdde940c123a0c07fe687cd9586dbf1262405e6f6e958b9c056f3d4ff2"
+  }
+}

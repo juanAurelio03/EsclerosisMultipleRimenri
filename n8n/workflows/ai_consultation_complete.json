@@ -1,0 +1,230 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-consultation",
+        "options": {}
+      },
+      "id": "1076830b-93ce-4d8e-aeea-cc8d221d05bf",
+      "name": "Webhook IA",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -16
+      ],
+      "webhookId": "69f0c74a-0ac5-4df8-867e-232a0766c787"
+    },
+    {
+      "parameters": {},
+      "id": "089a4b3b-22b2-4af1-9bfd-30035f5ee6b4",
+      "name": "Unir Respuestas",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        112,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener todos los items de entrada\nconst items = $input.all();\n\n// Verificar que tenemos 2 items (uno de cada LLM Chain)\nif (items.length < 2) {\n  throw new Error(`Se esperaban 2 respuestas, pero se recibieron ${items.length}`);\n}\n\n// Los LLM Chain nodes devuelven la respuesta en json.output\nconst deepseek = items[0].json.output || items[0].json.text || items[0].json;\nconst copilot = items[1].json.output || items[1].json.text || items[1].json;\n\n// Retornar en el formato esperado por Streamlit\nreturn {\n  deepseek_response: typeof deepseek === 'string' ? deepseek : JSON.stringify(deepseek),\n  copilot_response: typeof copilot === 'string' ? copilot : JSON.stringify(copilot),\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "dd90e2e5-223e-4a94-8854-52bc353cd339",
+      "name": "Formato Final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.prompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=\nINSTRUCCIONES DE ANÁLISIS:\n1. Evalúa los indicadores clínicos basándote estrictamente en estos rangos terapéuticos (basados en estudios ULTIMATE I/II):\n   - Tasa de Recaídas (ARR): Óptimo < 0.10 | Alerta 0.10-0.19 | Crítico ≥ 0.20 (Fallo terapéutico).\n   - Lesiones T1 Gd+: Meta 0 lesiones. Crítico ≥ 0.50.\n   - Lesiones T2 Nuevas: Meta ≤ 0.30. Crítico > 2.80.\n   - NEDA-3: Debe ser \"CUMPLE\". Si es \"NO CUMPLE\", el tratamiento actual no es efectivo.\n\n2. Tu análisis debe enfocarse en si el \"Tratamiento Actual\" está funcionando o si se requiere un cambio (escalada terapéutica).\n\nFORMATO DE RESPUESTA REQUERIDO:\nDebes responder SIEMPRE con esta estructura clara y profesional:\n\n## 1. Evaluación de Eficacia\n(Resume en 2 líneas si el paciente responde bien o mal al tratamiento actual, citando si cumple NEDA-3).\n\n## 2. Análisis de Riesgo\n(Indica si hay riesgo de progresión de discapacidad o brotes inminentes basado en el ARR y las lesiones).\n\n## 3. Recomendación Clínica\n(Sé directo: ¿Mantener tratamiento, Rotar medicación o Solicitar nuevos exámenes? Si sugieres cambio, justifica por qué).\n\n## 4. Nivel de Confianza\n(Un número del 1 al 10 sobre qué tan seguro estás de este diagnóstico con los datos provistos)."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -208,
+        -224
+      ],
+      "id": "0479d59f-4754-4260-97df-019eb65af8da",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -512,
+        368
+      ],
+      "id": "0c37fe66-994e-416a-aabb-7a1d70a17d63",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "NtSRAwpthBC5H0Ng",
+          "name": "Agent Models - ronaldfinanzas07@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.prompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Eres un neurólogo experto con más de 20 años de experiencia especializado en Esclerosis Múltiple (EM). Tu objetivo es asistir al médico tratante analizando los datos clínicos del paciente y sugiriendo un diagnóstico fundamentado.\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -352,
+        160
+      ],
+      "id": "e996afc1-9599-42f0-9d59-4c466c778a1c",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        -48
+      ],
+      "id": "8c4b14e8-5e3f-4ed2-a179-3ce341944168",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "JUZDBL9IAh48t0eu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        560,
+        16
+      ],
+      "id": "583d6f7c-1d9b-4585-8a4c-c555f3c9b18a",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "connections": {
+    "Webhook IA": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unir Respuestas": {
+      "main": [
+        [
+          {
+            "node": "Formato Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formato Final": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Unir Respuestas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Unir Respuestas",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7b6d0dfdde940c123a0c07fe687cd9586dbf1262405e6f6e958b9c056f3d4ff2"
+  }
+}
