@@ -13,8 +13,16 @@ class CopilotClient:
     """Cliente para interactuar con Microsoft Copilot API"""
     
     def __init__(self):
-        self.api_key = os.getenv("COPILOT_API_KEY")
-        self.api_endpoint = os.getenv("COPILOT_API_ENDPOINT", "https://api.openai.com/v1/chat/completions")
+        # Intentar leer de Streamlit secrets primero (para Streamlit Cloud)
+        # Si no existe, usar variables de entorno (para desarrollo local)
+        try:
+            import streamlit as st
+            self.api_key = st.secrets.get("COPILOT_API_KEY")
+            self.api_endpoint = st.secrets.get("COPILOT_API_ENDPOINT", "https://api.openai.com/v1/chat/completions")
+        except:
+            # Fallback a variables de entorno locales
+            self.api_key = os.getenv("COPILOT_API_KEY")
+            self.api_endpoint = os.getenv("COPILOT_API_ENDPOINT", "https://api.openai.com/v1/chat/completions")
         
         if not self.api_key:
             logger.warning("COPILOT_API_KEY no configurada")

@@ -13,8 +13,19 @@ class N8NClient:
     """Cliente para interactuar con workflows de n8n"""
     
     def __init__(self):
-        self.ai_webhook_url = os.getenv("N8N_AI_WEBHOOK", "")
-        self.alert_webhook_url = os.getenv("N8N_ALERT_WEBHOOK", "")
+        # Intentar leer de Streamlit secrets primero (para Streamlit Cloud)
+        # Si no existe, usar variables de entorno (para desarrollo local)
+        try:
+            import streamlit as st
+            self.ai_webhook_url = st.secrets.get("N8N_AI_WEBHOOK", "")
+            self.alert_webhook_url = st.secrets.get("N8N_ALERT_WEBHOOK", "")
+            logger.info("✅ Usando secrets de Streamlit Cloud para n8n")
+        except:
+            # Fallback a variables de entorno locales
+            self.ai_webhook_url = os.getenv("N8N_AI_WEBHOOK", "")
+            self.alert_webhook_url = os.getenv("N8N_ALERT_WEBHOOK", "")
+            logger.info("✅ Usando variables de entorno locales para n8n")
+        
         self.timeout = 180.0  # 3 minutos para consultas IA (los modelos pueden tardar)
         
     def is_configured(self) -> bool:

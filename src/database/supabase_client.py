@@ -30,9 +30,21 @@ class SupabaseClient:
     def _initialize_client(self):
         """Inicializa el cliente de Supabase"""
         try:
-            url = os.getenv("SUPABASE_URL")
-            # Usar SERVICE_KEY para tener permisos completos y bypassear RLS
-            key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_KEY")
+            # Intentar leer de Streamlit secrets primero (para Streamlit Cloud)
+            # Si no existe, usar variables de entorno (para desarrollo local)
+            url = None
+            key = None
+            
+            try:
+                import streamlit as st
+                url = st.secrets.get("SUPABASE_URL")
+                key = st.secrets.get("SUPABASE_SERVICE_KEY") or st.secrets.get("SUPABASE_KEY")
+                logger.info("✅ Usando secrets de Streamlit Cloud para Supabase")
+            except:
+                # Fallback a variables de entorno locales
+                url = os.getenv("SUPABASE_URL")
+                key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_KEY")
+                logger.info("✅ Usando variables de entorno locales para Supabase")
             
             if not url or not key:
                 raise ValueError("SUPABASE_URL y SUPABASE_SERVICE_KEY deben estar configurados en .env")
